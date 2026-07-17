@@ -264,6 +264,54 @@ function pageNote(s, txt) {
   ], { x: 0.95, y: 4.0, w: 11.4, h: 2.2, align: "right", rtlMode: true, fontFace: FONT, fontSize: 15.5, color: TEXT, lineSpacingMultiple: 1.3 });
 }
 
+// ---------- Slide: Testing & Verification ----------
+{
+  const s = slideBase("الاختبار والتحقق");
+  card(s, 6.75, 1.7, 5.85, 4.7);
+  s.addText("منهجية الاختبار", { x: 6.95, y: 1.9, w: 5.4, h: 0.5, align: "right", rtlMode: true, fontFace: FONT, fontSize: 18, bold: true, color: GOOD, margin: 0 });
+  s.addText([
+    { text: "26 اختبار وحدة وتكامل آليّة.", options: { bullet: true, breakLine: true } },
+    { text: "اختبار e2e كامل على Postgres حقيقي (مدمج).", options: { bullet: true, breakLine: true } },
+    { text: "تجربة حيّة للواجهة في المتصفح خطوة بخطوة.", options: { bullet: true, breakLine: true } },
+    { text: "تحقق منطق الفتح: idempotent ولا تراجع في الرصيد.", options: { bullet: true, breakLine: true } },
+    { text: "توليد DDL للهجرات والتحقق منه دون قاعدة.", options: { bullet: true } },
+  ], { x: 6.95, y: 2.5, w: 5.4, h: 3.7, align: "right", rtlMode: true, fontFace: FONT, fontSize: 14.5, color: TEXT, lineSpacingMultiple: 1.35 });
+
+  card(s, 0.7, 1.7, 5.85, 4.7);
+  s.addText("نتائج التحقق", { x: 0.9, y: 1.9, w: 5.4, h: 0.5, align: "right", rtlMode: true, fontFace: FONT, fontSize: 18, bold: true, color: GOLD, margin: 0 });
+  s.addText([
+    { text: "26/26 اختبار ناجح ✅", options: { bullet: true, breakLine: true } },
+    { text: "التدفّق الكامل يعمل: من الطلب حتى فتح 500 Robux.", options: { bullet: true, breakLine: true } },
+    { text: "بق حقيقي اكتشفه المتصفح (تقدّم المكافأة) → أُصلح + اختبار يمنع تكراره.", options: { bullet: true, breakLine: true } },
+    { text: "لا تسرّب بيانات أطفال، والمال بحساب Decimal آمن.", options: { bullet: true } },
+  ], { x: 0.9, y: 2.5, w: 5.4, h: 3.7, align: "right", rtlMode: true, fontFace: FONT, fontSize: 14.5, color: TEXT, lineSpacingMultiple: 1.35 });
+
+  pageNote(s, "التحقق ليس شرائح — كل نتيجة مثبتة بتشغيل فعلي على قاعدة حقيقية وفي المتصفح.");
+}
+
+// ---------- Slide: Proposed applied example (60s demo) ----------
+{
+  const s = slideBase("مثال تطبيقي مقترح (ديمو 60 ثانية)");
+  const segs = [
+    ["0:00–0:10", "الأب يسجّل، ينشئ ملف «سامي»، ويشتري 500 Robux → تُقفل في الخزنة 🔒"],
+    ["0:10–0:20", "الأب يسلّم الجهاز؛ سامي يدخل بـ PIN → خريطة فيها 3 وحوش وخزنة 0%"],
+    ["0:20–0:40", "يواجه وحش الشراء السريع → يختار «أنتظر وأفكّر» → يهزمه، الخزنة 33%، رسالة تشجيع، والـ AI يقترح الوحش التالي"],
+    ["0:40–0:55", "يهزم ضغط الأصدقاء (67%) ثم العروض الوهمية النهائي (100%) → احتفال وفتح 500 Robux"],
+    ["0:55–1:00", "الأب يفتح لوحة الرؤى: نمو الصبر وضبط الاندفاع + توقّع الإكمال"],
+  ];
+  let y = 1.7;
+  const h = 0.9, bw = 1.5;
+  for (const [t, d] of segs) {
+    card(s, 0.7, y, 11.9, h);
+    // time badge on the right
+    s.addShape(pres.ShapeType.roundRect, { x: 12.6 - bw - 0.15, y: y + 0.22, w: bw, h: 0.46, rectRadius: 0.1, fill: { color: ORANGE } });
+    s.addText(t, { x: 12.6 - bw - 0.15, y: y + 0.22, w: bw, h: 0.46, align: "center", valign: "middle", fontFace: FONT, fontSize: 13, bold: true, color: BG, margin: 0 });
+    s.addText(d, { x: 0.95, y: y + 0.1, w: 12.6 - bw - 1.25, h: h - 0.2, align: "right", rtlMode: true, fontFace: FONT, fontSize: 14, color: TEXT, margin: 0, valign: "middle" });
+    y += h + 0.08;
+  }
+  pageNote(s, "الغرض: إثبات فعالية النموذج (تعلّم + متعة + فتح تدريجي) قبل الإطلاق.");
+}
+
 // ---------- Slide 11: AI ----------
 {
   const s = slideBase("الذكاء الاصطناعي (rule-engine → ML)");
