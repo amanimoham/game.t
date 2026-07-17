@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { api } from "./api.js";
+import { ErrorBox } from "./ui.jsx";
 import ParentDashboard from "./ParentDashboard.jsx";
 import Game from "./Game.jsx";
 
 export default function App() {
   const [parentToken, setParentToken] = useState(() => localStorage.getItem("parentToken"));
   const [view, setView] = useState("auth"); // auth | parent | game
-  const [gameCtx, setGameCtx] = useState(null); // { childToken, child, reward }
+  const [gameCtx, setGameCtx] = useState(null);
 
   useEffect(() => {
     if (parentToken && view === "auth") setView("parent");
@@ -25,15 +26,10 @@ export default function App() {
     setView("auth");
   }
 
+  if (view === "auth") return <Auth onAuthed={onParentAuthed} />;
+
   return (
-    <div className="app">
-      <div className="brand">
-        <h1>🛡️ محاربة المغريات</h1>
-        <p>لعبة تعليمية ترفع وعي الأطفال بالادخار</p>
-      </div>
-
-      {view === "auth" && <Auth onAuthed={onParentAuthed} />}
-
+    <div className="app-shell">
       {view === "parent" && (
         <ParentDashboard
           token={parentToken}
@@ -44,10 +40,7 @@ export default function App() {
           onLogout={logout}
         />
       )}
-
-      {view === "game" && gameCtx && (
-        <Game ctx={gameCtx} onExit={() => setView("parent")} />
-      )}
+      {view === "game" && gameCtx && <Game ctx={gameCtx} onExit={() => setView("parent")} />}
     </div>
   );
 }
@@ -75,35 +68,48 @@ function Auth({ onAuthed }) {
   }
 
   return (
-    <div className="card" style={{ maxWidth: 420, margin: "0 auto" }}>
-      <div className="row spread" style={{ marginBottom: 16 }}>
-        <button className={mode === "login" ? "" : "ghost"} onClick={() => setMode("login")}>
-          دخول الأب
-        </button>
-        <button className={mode === "register" ? "" : "ghost"} onClick={() => setMode("register")}>
-          حساب جديد
-        </button>
+    <div className="app-shell">
+      <div className="auth-wrap">
+        <div className="auth-hero">
+          <div className="logo">🛡️</div>
+          <h2>بوابة ولي الأمر</h2>
+          <p>تابع رحلة طفلك نحو قرارات مالية أذكى</p>
+          <div className="points">
+            <div>💰 مكافأة محفوظة تُفتح مع التعلّم</div>
+            <div>🧠 مهارات: الصبر، ضبط الاندفاع، الادخار</div>
+            <div>📊 لوحة متابعة واضحة لتقدّم طفلك</div>
+          </div>
+        </div>
+
+        <div className="auth-form">
+          <div className="auth-tabs">
+            <button className={mode === "login" ? "on" : ""} onClick={() => setMode("login")}>
+              تسجيل الدخول
+            </button>
+            <button className={mode === "register" ? "on" : ""} onClick={() => setMode("register")}>
+              حساب جديد
+            </button>
+          </div>
+
+          <form onSubmit={submit}>
+            <div className="field">
+              <label>البريد الإلكتروني</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" required />
+            </div>
+            <div className="field">
+              <label>كلمة المرور</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} placeholder="٨ أحرف على الأقل" required />
+            </div>
+            <ErrorBox>{error}</ErrorBox>
+            <button type="submit" className="btn btn-block" disabled={busy}>
+              {busy ? "..." : mode === "login" ? "دخول لوحة المتابعة" : "إنشاء حساب"}
+            </button>
+          </form>
+          <p className="hint" style={{ textAlign: "center", marginTop: 16 }}>
+            تجربة تعليمية آمنة — بيانات طفلك محمية ولا تُشارك.
+          </p>
+        </div>
       </div>
-      <form onSubmit={submit}>
-        <div className="field">
-          <label>البريد الإلكتروني</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div className="field">
-          <label>كلمة المرور (٨ أحرف على الأقل)</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
-            required
-          />
-        </div>
-        {error && <div className="error">{error}</div>}
-        <button type="submit" disabled={busy} style={{ width: "100%" }}>
-          {busy ? "..." : mode === "login" ? "تسجيل الدخول" : "إنشاء الحساب"}
-        </button>
-      </form>
     </div>
   );
 }

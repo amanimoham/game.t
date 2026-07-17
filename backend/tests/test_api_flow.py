@@ -198,6 +198,56 @@ async def test_full_journey_unlocks_reward(client: AsyncClient, pg_async_uri) ->
 
 
 @pytest.mark.asyncio
+async def test_open_banking_flow(client: AsyncClient) -> None:
+    r = await client.post(
+        "/api/v1/auth/register",
+        json={"email": "bank@example.com", "password": "supersecret1"},
+    )
+    parent_h = await _auth_headers(r.json()["access_token"])
+
+    # insights blocked before connecting (consent-gated)
+    r = await client.get("/api/v1/banking/insights", headers=parent_h)
+    assert r.status_code == 409
+
+    # status shows disconnected + a bank picker
+    r = await client.get("/api/v1/banking/status", headers=parent_h)
+    assert r.status_code == 200 and r.json()["connected"] is False
+    assert len(r.json()["supported_banks"]) > 0
+
+    # connect (simulated consent — no credentials)
+    r = await client.post(
+        "/api/v1/banking/connect", headers=parent_h, json={"bank_name": "مصرف المحاكاة"}
+    )
+    assert r.status_code == 200 and r.json()["connected"] is True
+
+    # insights now available: categories + educational recommendations
+    r = await client.get("/api/v1/banking/insights", headers=parent_h)
+    assert r.status_code == 200, r.text
+    ins = r.json()
+    assert ins["simulated"] is True
+    assert len(ins["categories"]) == 4
+    assert sum(c["pct"] for c in ins["categories"]) >= 95  # ~100%
+    assert len(ins["recommendations"]) >= 2
+
+    # saving goal
+    r = await client.post(
+        "/api/v1/banking/goals",
+        headers=parent_h,
+        json={"title": "مكافأة 500 Robux", "target_amount": "500.00"},
+    )
+    assert r.status_code == 201, r.text
+    goal = r.json()
+    assert goal["remaining_amount"] == "500.00"
+    assert goal["progress_pct"] == 0
+
+    # disconnect
+    r = await client.post("/api/v1/banking/disconnect", headers=parent_h)
+    assert r.status_code == 200
+    r = await client.get("/api/v1/banking/insights", headers=parent_h)
+    assert r.status_code == 409  # consent revoked
+
+
+@pytest.mark.asyncio
 async def test_wrong_pin_and_refresh_rotation(client: AsyncClient) -> None:
     r = await client.post(
         "/api/v1/auth/register",

@@ -55,3 +55,14 @@ class ActorType(str, enum.Enum):
     CHILD = "child"
     ADMIN = "admin"
     SYSTEM = "system"
+
+
+class ConnectionStatus(str, enum.Enum):
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+
+
+class GoalStatus(str, enum.Enum):
+    ACTIVE = "active"
+    ACHIEVED = "achieved"
+    CANCELLED = "cancelled"

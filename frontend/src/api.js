@@ -56,4 +56,15 @@ export const api = {
 
   // dashboard (parent)
   insights: (token, child_id) => request(`/dashboard/children/${child_id}`, { token }),
+  timeline: (token, child_id) => request(`/dashboard/children/${child_id}/timeline`, { token }),
+
+  // open banking (parent, simulated)
+  bankStatus: (token) => request("/banking/status", { token }),
+  bankConnect: (token, bank_name) =>
+    request("/banking/connect", { method: "POST", token, body: { bank_name } }),
+  bankDisconnect: (token) => request("/banking/disconnect", { method: "POST", token }),
+  bankInsights: (token) => request("/banking/insights", { token }),
+  listGoals: (token) => request("/banking/goals", { token }),
+  createGoal: (token, payload) =>
+    request("/banking/goals", { method: "POST", token, body: payload }),
 };

@@ -6,6 +6,7 @@ importing ``app.models``.
 """
 from app.models.analytics import BehaviorEvent, ChildDecision, ChildProfile
 from app.models.audit import AuditLog
+from app.models.banking import BankConnection, SavingGoal
 from app.models.child import Child
 from app.models.consent import ParentalConsent
 from app.models.game import Challenge, GameSession, Level, MonsterType
@@ -26,4 +27,6 @@ __all__ = [
     "ChildProfile",
     "BehaviorEvent",
     "AuditLog",
+    "BankConnection",
+    "SavingGoal",
 ]
