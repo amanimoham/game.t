@@ -26,6 +26,7 @@ export const api = {
     request("/auth/login", { method: "POST", body: { email, password } }),
   childLogin: (token, child_id, pin) =>
     request("/auth/child-login", { method: "POST", token, body: { child_id, pin } }),
+  me: (token) => request("/auth/me", { token }),
 
   // children (parent)
   createChild: (token, nickname, age_group) =>

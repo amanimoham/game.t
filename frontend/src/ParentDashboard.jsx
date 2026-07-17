@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "./api.js";
-import { Bar, Empty, ErrorBox, Metric, SkillCard, Spinner, StatusBadge } from "./ui.jsx";
+import { Bar, Empty, ErrorBox, Header, Metric, SavingBalanceCard, SkillCard, Spinner, StatusBadge } from "./ui.jsx";
 import SmartBankingSection from "./banking.jsx";
 import AddRewardFlow from "./payment.jsx";
 
@@ -11,6 +11,20 @@ export default function ParentDashboard({ token, onPlay, onLogout }) {
   const [insights, setInsights] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    api.me(token).then((u) => setEmail(u.email)).catch(() => {});
+  }, []);
+
+  const totals = children.reduce(
+    (acc, c) => {
+      const r = (insights[c.id]?.rewards || [])[0];
+      if (r) { acc.target += Number(r.amount); acc.current += Number(r.unlocked_amount); }
+      return acc;
+    },
+    { target: 0, current: 0 }
+  );
 
   async function refresh() {
     setError("");
@@ -31,16 +45,9 @@ export default function ParentDashboard({ token, onPlay, onLogout }) {
 
   return (
     <>
-      <div className="navbar">
-        <div className="brand">
-          <div className="brand-badge">🛡️</div>
-          <div>
-            <h1>محاربة المغريات</h1>
-            <p>لوحة متابعة ولي الأمر</p>
-          </div>
-        </div>
-        <button className="btn-ghost" onClick={onLogout}>خروج</button>
-      </div>
+      <Header email={email} onLogout={onLogout} />
+
+      <SavingBalanceCard current={totals.current} target={totals.target} />
 
       <AddChildCard token={token} onAdded={refresh} />
 
