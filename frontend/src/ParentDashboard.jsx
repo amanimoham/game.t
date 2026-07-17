@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "./api.js";
 import { Bar, Empty, ErrorBox, Metric, SkillCard, Spinner, StatusBadge } from "./ui.jsx";
 import SmartBankingSection from "./banking.jsx";
+import AddRewardFlow from "./payment.jsx";
 
 const AGE_GROUPS = ["5-7", "8-10", "11-13"];
 
@@ -42,6 +43,10 @@ export default function ParentDashboard({ token, onPlay, onLogout }) {
       </div>
 
       <AddChildCard token={token} onAdded={refresh} />
+
+      {!loading && children.length > 0 && (
+        <AddRewardFlow token={token} children={children} onDone={refresh} />
+      )}
 
       <ErrorBox>{error}</ErrorBox>
 
