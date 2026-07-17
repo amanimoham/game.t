@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.features import build_features, context_from_features
 from app.ai.strategies import success_predictor
-from app.models.analytics import ChildDecision
+from app.game_engine.engine import apply_skill_deltas
+from app.models.analytics import BehaviorEvent, ChildDecision
 from app.models.child import Child
 from app.models.game import Challenge, MonsterType
 from app.services.game_service import GameService
@@ -50,6 +51,48 @@ class InsightsService:
             "defeated_monsters": defeated_monsters,
             "rewards": rewards,
         }
+
+    async def child_timeline(self, parent_id: uuid.UUID, child_id: uuid.UUID) -> list[dict]:
+        """Replay decisions to chart skill growth over time (parent dashboard)."""
+        child = await self.db.get(Child, child_id)
+        if child is None or child.parent_id != parent_id or not child.is_active:
+            raise InsightsError("Child not found")
+
+        code_map = {
+            row[0]: row[1].value
+            for row in (await self.db.execute(select(MonsterType.id, MonsterType.code))).all()
+        }
+        events = (
+            (
+                await self.db.execute(
+                    select(BehaviorEvent)
+                    .where(
+                        BehaviorEvent.child_id == child_id,
+                        BehaviorEvent.event_name == "decision",
+                    )
+                    .order_by(BehaviorEvent.created_at)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        skills = {"patience": 0.0, "saving_awareness": 0.0, "impulse_control": 0.0}
+        points: list[dict] = []
+        for step, event in enumerate(events, start=1):
+            data = event.event_data or {}
+            skills = apply_skill_deltas(skills, data.get("skill_deltas", {}))
+            points.append(
+                {
+                    "step": step,
+                    "correct": bool(data.get("correct")),
+                    "monster_code": code_map.get(event.monster_type_id),
+                    "patience": skills["patience"],
+                    "saving_awareness": skills["saving_awareness"],
+                    "impulse_control": skills["impulse_control"],
+                }
+            )
+        return points
 
     async def _defeated_monster_names(self, child_id: uuid.UUID) -> list[str]:
         rows = (

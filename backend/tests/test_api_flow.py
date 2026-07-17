@@ -80,7 +80,7 @@ async def _auth_headers(token: str) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_full_journey_unlocks_reward(client: AsyncClient) -> None:
+async def test_full_journey_unlocks_reward(client: AsyncClient, pg_async_uri) -> None:
     # 1) parent registers
     r = await client.post(
         "/api/v1/auth/register",
@@ -175,6 +175,26 @@ async def test_full_journey_unlocks_reward(client: AsyncClient) -> None:
     # skills grew above zero
     assert insights["skills"]["impulse_control"] > 0
     assert insights["success_prediction"]["probability"] > 0
+
+    # 11) P3: skill-growth timeline (3 points, non-decreasing impulse_control)
+    r = await client.get(f"/api/v1/dashboard/children/{child_id}/timeline", headers=parent_h)
+    assert r.status_code == 200, r.text
+    timeline = r.json()
+    assert len(timeline) == 3
+    assert timeline[-1]["impulse_control"] >= timeline[0]["impulse_control"]
+
+    # 12) P3: training dataset export yields a labelled row for this child
+    from sqlalchemy.ext.asyncio import async_sessionmaker as _sm
+    from app.services.training_data_service import export_completion_dataset
+
+    eng = create_async_engine(pg_async_uri, poolclass=NullPool)
+    async with _sm(eng, expire_on_commit=False)() as s:
+        rows = await export_completion_dataset(s)
+    await eng.dispose()
+    mine = [row for row in rows if row["child_id"] == child_id]
+    assert mine, "child not in training dataset"
+    assert mine[0]["label_completed"] == 1
+    assert mine[0]["total_decisions"] == 3
 
 
 @pytest.mark.asyncio

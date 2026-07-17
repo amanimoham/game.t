@@ -17,3 +17,12 @@ class ChildInsights(BaseModel):
     success_prediction: SuccessPredictionOut
     defeated_monsters: list[str]
     rewards: list[RewardOut]
+
+
+class TimelinePoint(BaseModel):
+    step: int
+    correct: bool
+    monster_code: str | None = None
+    patience: float
+    saving_awareness: float
+    impulse_control: float
